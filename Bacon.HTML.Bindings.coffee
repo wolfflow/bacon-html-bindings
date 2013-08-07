@@ -37,14 +37,14 @@ init = (Bacon) ->
         if abort then xhr.abort()
       )
 
-  Bacon.HTML.ajaxGet = ajaxGet = (url) -> ajax({url})
+  Bacon.HTML.ajaxGet = ajaxGet = (url, abort) -> ajax({url}, abort)
 
-  Bacon.HTML.ajaxPost = (url, body) -> ajax({url, body, method: "POST"})
+  Bacon.HTML.ajaxPost = (url, body, abort) -> ajax({url, body, method: "POST"}, abort)
 
-  Bacon.HTML.ajaxGetJSON = (url) -> 
-    ajaxGet(url).map (xhr) -> JSON.parse xhr.responseText
+  Bacon.HTML.ajaxGetJSON = (url, abort) -> 
+    ajaxGet(url, abort).map (xhr) -> JSON.parse xhr.responseText
 
-  Bacon.HTML.lazyAjax = (params) -> Bacon.once(params).flatMap(ajax)
+  Bacon.HTML.lazyAjax = (params,abort) -> Bacon.once(params).flatMap((x) -> ajax(x, abort))
 
   Bacon.HTML
 
