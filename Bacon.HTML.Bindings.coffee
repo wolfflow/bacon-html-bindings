@@ -46,6 +46,16 @@ init = (Bacon) ->
 
   Bacon.HTML.lazyAjax = (params,abort) -> Bacon.once(params).flatMap((x) -> ajax(x, abort))
 
+  # asEventStream method (IE8+)
+
+  element = if typeof HTMLElement isnt "undefined"
+    HTMLElement #w3c DOM, ie 9+
+  else
+    Element #ie8  
+  
+  element::asEventStream = (eventName, eventTransformer) ->
+    Bacon.fromEventTarget(@, eventName, eventTransformer)
+  
   Bacon.HTML
 
 if module?
