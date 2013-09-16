@@ -1,14 +1,15 @@
 init = (Bacon) ->
   Bacon.HTML = {}
 
-  Bacon.HTML.ajax = ajax = ({method, url, async, body, user, password, headers}, abort=true) ->
+  Bacon.HTML.ajax = ajax = ({method, url, async, body, user, password, headers, withCredentials}, abort=true) ->
     Bacon.fromBinder (handler) ->
-      async = !!async ? true
+      async = if async is false then false else true
       method ?= "GET"
       headers ?= {}
       body ?= null
 
       xhr = new XMLHttpRequest()
+      xhr.withCredentials = !!withCredentials
       xhr.open(method, url, async, user,password,headers)
 
       for own header, headerData of headers
