@@ -14,7 +14,7 @@
         abort = true;
       }
       return Bacon.fromBinder(function(handler) {
-        var header, headerData, unsub, unsubError, xhr;
+        var header, headerData, xhr;
         async = async === false ? false : true;
         if (method == null) {
           method = "GET";
@@ -33,26 +33,27 @@
           headerData = headers[header];
           xhr.setRequestHeader(header, headerData);
         }
-        unsub = Bacon.fromEventTarget(xhr, "readystatechange").map(".target").filter(function(x) {
-          return x.readyState === 4;
-        }).map(".status").assign(function(status) {
-          if ((status >= 200 && status <= 300) || status === 0 || status === "") {
-            return handler(xhr);
-          } else {
-            return handler(new Bacon.Error(xhr));
-          }
+        Bacon.fromEventTarget(xhr, "readystatechange").map(".target").doAction(function(x) {
+          return x.readyState = x.status > 0 ? 4 : 0;
+        }).filter(function(x) {
+          return x.readyState === 4 && x.status >= 200 && x.status < 300 || x.status === 304;
+        }).take(1).assign(function(x) {
+          handler(xhr);
+          return xhr = null;
         });
-        unsubError = Bacon.fromEventTarget(xhr, "error").assign(function() {
-          return new Bacon.Error(xhr);
+        Bacon.fromEventTarget(xhr, "error").map(".target").take(1).assign(function(x) {
+          handler(new Bacon.Error(xhr));
+          return xhr = null;
         });
         xhr.send(body);
         return function() {
-          unsub();
-          unsubError();
-          if (abort) {
-            return xhr.abort();
+          if (xhr && abort) {
+            xhr.abort();
+            return xhr = null;
           }
         };
+      }, function(value) {
+        return [value, new Bacon.End()];
       });
     };
     Bacon.HTML.ajaxGet = ajaxGet = function(url, abort) {

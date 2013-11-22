@@ -15,28 +15,37 @@ init = (Bacon) ->
       for own header, headerData of headers
         xhr.setRequestHeader header, headerData
 
-      unsub =
-        Bacon.fromEventTarget(xhr, "readystatechange")
-        .map(".target")
-        .filter((x) -> x.readyState is 4)
-        .map(".status")
-        .assign((status)->
-          if (status >= 200 and status <= 300) or status is 0 or status is ""
-            handler(xhr)
-          else  
-            handler(new Bacon.Error(xhr))
-        )
       
-      unsubError = 
-        Bacon.fromEventTarget(xhr, "error").assign(->new Bacon.Error(xhr))
+      Bacon.fromEventTarget(xhr, "readystatechange")
+      .map(".target")
+      .doAction((x)->
+        x.readyState = if x.status > 0 then 4 else 0
+      )
+      .filter((x) ->
+        x.readyState is 4 && x.status >= 200 && x.status < 300 || x.status is 304
+      )
+      .take(1)
+      .assign((x)->
+        handler(xhr)
+        xhr = null
+      )
+    
+      Bacon.fromEventTarget(xhr, "error")
+      .map(".target")
+      .take(1)
+      .assign((x)->
+        handler new Bacon.Error(xhr)
+        xhr = null
+      )
 
       xhr.send(body)
       
       (->
-        unsub()
-        unsubError()
-        if abort then xhr.abort()
+        if xhr && abort
+          xhr.abort()
+          xhr = null
       )
+    , (value) -> [value, new Bacon.End()]
 
   Bacon.HTML.ajaxGet = ajaxGet = (url, abort) -> ajax({url}, abort)
 
