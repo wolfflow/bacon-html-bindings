@@ -5,7 +5,7 @@
     __slice = [].slice;
 
   init = function(Bacon) {
-    var ajax, ajaxGet, element;
+    var ajax, ajaxGet, cancelRequestAnimFrame, element, requestAnimFrame, scheduleFrame;
     Bacon.HTML = {};
     Bacon.HTML.ajax = ajax = function(_arg, abort) {
       var async, body, headers, method, password, url, user, withCredentials;
@@ -90,6 +90,34 @@
         };
         return function() {
           return target[eventName] = null;
+        };
+      });
+    };
+    cancelRequestAnimFrame = (function() {
+      return window.cancelAnimationFrame || window.webkitCancelRequestAnimationFrame || window.mozCancelRequestAnimationFrame || window.oCancelRequestAnimationFrame || window.msCancelRequestAnimationFrame || clearTimeout;
+    })();
+    requestAnimFrame = (function() {
+      return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(cb) {
+        return setTimeout(cb, 1000 / 60);
+      };
+    })();
+    scheduleFrame = function(cb) {
+      var animLoop, id;
+      id = -1;
+      animLoop = function(x) {
+        cb(x);
+        return id = requestAnimFrame(function() {
+          return animLoop(id);
+        });
+      };
+      return animLoop(id);
+    };
+    Bacon.HTML.animFrame = function() {
+      return Bacon.fromBinder(function(handler) {
+        var id;
+        id = scheduleFrame(handler);
+        return function() {
+          return cancelRequestAnimFrame(id);
         };
       });
     };
