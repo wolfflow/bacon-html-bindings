@@ -56,6 +56,11 @@ init = (Bacon) ->
   
   element::asEventStream = (eventName, eventTransformer) ->
     Bacon.fromEventTarget(@, eventName, eventTransformer)
+
+  Bacon.HTML.fromOnEvent = (target, eventName) ->
+    Bacon.fromBinder (handler) ->
+      target[eventName] = (args...) -> handler(args...)
+      (-> target[eventName] = null)  
   
   Bacon.HTML
 
