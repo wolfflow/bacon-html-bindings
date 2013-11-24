@@ -9,7 +9,10 @@ init = (Bacon) ->
       body ?= null
 
       xhr = new XMLHttpRequest()
-      xhr.withCredentials = !!withCredentials
+      
+      if withCredentials
+        xhr.withCredentials = true
+        
       xhr.open(method, url, async, user,password,headers)
 
       for own header, headerData of headers
