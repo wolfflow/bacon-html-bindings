@@ -26,7 +26,9 @@
           body = null;
         }
         xhr = new XMLHttpRequest();
-        xhr.withCredentials = !!withCredentials;
+        if (withCredentials) {
+          xhr.withCredentials = true;
+        }
         xhr.open(method, url, async, user, password, headers);
         for (header in headers) {
           if (!__hasProp.call(headers, header)) continue;
