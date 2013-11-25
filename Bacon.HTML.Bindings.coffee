@@ -73,6 +73,12 @@ init = (Bacon) ->
     Bacon.fromBinder (handler) ->
       target[eventName] = (args...) -> handler(args...)
       (-> target[eventName] = null)
+
+  Bacon.HTML.fromOnEventCallback = (target, eventName) ->
+    Bacon.fromCallback (handler) ->
+      target[eventName] = (args...) -> handler(args...)
+      (-> target[eventName] = null)
+
       
     # Request Animation Frame
   cancelRequestAnimFrame = do ->

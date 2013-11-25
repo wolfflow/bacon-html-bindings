@@ -96,6 +96,18 @@
         };
       });
     };
+    Bacon.HTML.fromOnEventCallback = function(target, eventName) {
+      return Bacon.fromCallback(function(handler) {
+        target[eventName] = function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          return handler.apply(null, args);
+        };
+        return function() {
+          return target[eventName] = null;
+        };
+      });
+    };
     cancelRequestAnimFrame = (function() {
       return window.cancelAnimationFrame || window.webkitCancelRequestAnimationFrame || window.mozCancelRequestAnimationFrame || window.oCancelRequestAnimationFrame || window.msCancelRequestAnimationFrame || clearTimeout;
     })();
